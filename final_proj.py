@@ -202,16 +202,27 @@ def get_chart_rank(url):
     response = make_request_with_cache(url)
     # response = requests.get(url).text
     soup = BeautifulSoup(response, 'html.parser')
-    rank_list = soup.find(class_='chart-list__elements').find_all('li', recursive=False)[0:20]
     rank_dic = {}
 
-    for i,item in enumerate(rank_list):
-        rank = item.find(class_='chart-element__rank__number').text.strip()
-        name = item.find(class_='chart-element__information__song').text.strip()
-        info = item.find(class_='chart-element__information__artist').text.strip()
-        rank_item = Item(name, info, rank)
-        rank_dic[i+1] = rank_item
-        print(rank_item.content())
+    if url == 'https://www.billboard.com/charts/artist-100':
+        rank_list = soup.find(class_='chart-list chart-details__left-rail').find_all(class_='chart-list-item')[0:20]
+        for i,item in enumerate(rank_list):
+            rank = item.find(class_='chart-list-item__rank').text.strip()
+            name = item.find(class_='chart-list-item__title-text').text.strip()
+            info = None
+            rank_item = Item(name, info, rank)
+            rank_dic[i+1] = rank_item
+            print(rank_item.content())
+    else:
+        rank_list = soup.find(class_='chart-list__elements').find_all('li', recursive=False)[0:20]
+
+        for i,item in enumerate(rank_list):
+            rank = item.find(class_='chart-element__rank__number').text.strip()
+            name = item.find(class_='chart-element__information__song').text.strip()
+            info = item.find(class_='chart-element__information__artist').text.strip()
+            rank_item = Item(name, info, rank)
+            rank_dic[i+1] = rank_item
+            print(rank_item.content())
 
     return rank_dic
 
