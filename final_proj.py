@@ -175,7 +175,7 @@ def get_popular_charts():
     charts = top_charts.find_all(class_='chart-panel__link')
     chart_dic = {}
 
-    for i,c in enumerate(charts):
+    for i,c in enumerate(charts[:3]):
         sub_url = c['href']
         url = baseurl + sub_url
         name = c.find(class_='chart-panel__text').text.strip()
@@ -387,15 +387,62 @@ def plot_video_info(df):
 
 if __name__ == '__main__':
 
-    tic = time()
+    # tic = time()
+
+    # chart_dic = get_popular_charts()
+    # rank_dic = get_chart_rank(chart_dic[1].url)
+    # videos = get_youtube_info(rank_dic[1].name)
+    # get_video_statistics('adLGHcj_fmA')
+    # create_db_table(rank_dic[1].name, videos)
+    # df = fetch_data_from_table(rank_dic[1].name)
+    # plot_video_info(df)
+
+    # toc = time()
+    # print(f'{toc-tic: .2f}s')
 
     chart_dic = get_popular_charts()
-    rank_dic = get_chart_rank(chart_dic[1].url)
-    videos = get_youtube_info(rank_dic[1].name)
-    get_video_statistics('adLGHcj_fmA')
-    create_db_table(rank_dic[1].name, videos)
-    df = fetch_data_from_table(rank_dic[1].name)
-    plot_video_info(df)
+    resp1 = None
+    while True:
+        if resp1 is None:
+            resp1 = input("Please enter the number for the chart you want to look at (e.g. '1') or 'exit': ")
+            if resp1 == 'exit':
+                break
+            elif not resp1.isnumeric():
+                print ('[Error] Please a enter valid number\n')
+                resp1 = None
+                continue
+            elif int(resp1) not in chart_dic.keys():
+                print (f'[Error] Please a enter proper number [1 - {len(chart_dic)}]\n')
+                resp1 = None
+                continue
+            else:
+                chart = chart_dic[int(resp1)]
+                print('-----------------------------------------------------')
+                print(f'Top 20 for {chart.name}')
+                print('-----------------------------------------------------')
+                rank_dic = get_chart_rank(chart.url)
 
-    toc = time()
-    print(f'{toc-tic: .2f}s')
+        print('-----------------------------------------------------')
+        resp2 = input("Choose a rank number for detail information or 'exit' or 'back': ")
+
+        if resp2 == 'exit':
+            break
+        elif resp2 == 'back':
+            resp1 = None
+        elif resp2.isnumeric() and int(resp2) >= 1 and int(resp2) <= len(rank_dic):
+            item = rank_dic[int(resp2)]
+            print('-----------------------------------------------------')
+            print(f'{item.content()}')
+            print('-----------------------------------------------------')
+
+            videos = get_youtube_info(item.name)
+            print('-----------------------------------------------------')
+            print(f'Top 20 relevant youtube videos for {item.name}')
+            print('-----------------------------------------------------')
+            create_db_table(item.name, videos)
+            df = fetch_data_from_table(item.name)
+            for v in videos:
+                print(f'{v.name} [totol view counts: {v.views}]')
+            plot_video_info(df)
+        else:
+            print('[Error] Invalid input\n')
